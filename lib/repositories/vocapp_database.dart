@@ -1,6 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:vocapp/model/voc.dart';
+import 'package:vocapp/models/voc.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class VocappDatabase {
@@ -46,26 +46,39 @@ class VocappDatabase {
     db.close();
   }
 
-  Future<List<Voc>> getVoc() async {
+  /*Future test() async {
     final db = await instance.database;
-    List<Map> res = await db.rawQuery(
-        'SELECT voc.id, lemma, inflections, translation, pos.name FROM voc, pos, status WHERE voc.pos = pos.id AND voc.status = status.id AND DATE("now", status.name + " day") AND status.name NOT IN ("known", "unknown")');
+
+    List<Map> res = await db
+        .rawQuery('SELECT DATE(date, status.name) from voc, status where voc.status = status.id and voc.id = 2');
+
+    print(res);
+  }*/
+
+  Future<List<Voc>> getVoc(bool rand) async {
+    print("GET VOC");
+    final db = await instance.database;
 
     List<Voc> voc = [];
 
-    res.forEach((element) {
-      Voc obj = Voc.fromMap(element);
-      voc.add(obj);
-    });
-
-    int limit = 20 - res.length > 5 ? 5 : 20 - res.length;
-    res = await db.rawQuery(
-        'SELECT voc.id, lemma, inflections, translation, pos.name FROM voc, pos, status WHERE voc.pos = pos.id AND voc.status = status.id AND status.name = "unknown" ORDER BY RANDOM() LIMIT $limit');
+    List<Map> res = await db.rawQuery(
+        'SELECT voc.id, lemma, inflections, translation, pos.name, weight FROM voc, pos, status WHERE voc.pos = pos.id AND voc.status = status.id AND ((DATE("now","localtime") = DATE(date, status.name) AND status NOT IN (1, 7)) OR weight IS NOT NULL)');
 
     res.forEach((element) {
       Voc obj = Voc.fromMap(element);
       voc.add(obj);
     });
+
+    if (rand && res.length < 24) {
+      int limit = 24 - res.length < 3 ? 24 - res.length : 3;
+      res = await db.rawQuery(
+          'SELECT voc.id, lemma, inflections, translation, pos.name, weight FROM voc, pos WHERE voc.pos = pos.id AND status = 1 ORDER BY RANDOM() LIMIT $limit');
+
+      res.forEach((element) {
+        Voc obj = Voc.fromMap(element);
+        voc.add(obj);
+      });
+    }
 
     return voc;
   }
@@ -73,26 +86,30 @@ class VocappDatabase {
   Future<double> getProgression() async {
     final db = await instance.database;
     List<Map> res = await db.rawQuery(
-        'SELECT (SELECT COUNT(voc.id) FROM voc WHERE status = 7) / (SELECT COUNT(voc.id) FROM voc) as progression');
+        'SELECT SUM((0.111*(status-1))*(0.111*(status-1))) / (SELECT COUNT(id) FROM voc) as progression FROM voc');
 
-    return res[0]['progression'].toDouble();
+    return double.parse((res[0]['progression']).toStringAsFixed(2));
   }
 
-  void delayedVocDates(int diff) async {
+  void postponeDates(int diff) async {
+    print("POSTPONE DATES");
     final db = await instance.database;
     await db.execute('UPDATE voc SET date = DATE(date, "$diff day")');
   }
 
-  void pushTraining() async {
+  void pushTraining(DateTime dateTime) async {
+    print("PUSH TRAINING");
     final db = await instance.database;
-    //Gérer statut entre 0 et 7
-    await db.execute('UPDATE voc SET status = status + modif, modif = 0, date = DATE("now") WHERE modif != 0');
+    String date = dateTime.toString().split(" ")[0];
+    await db.execute(
+        'UPDATE voc SET status = (CASE WHEN (status + weight) > 10 THEN 10 WHEN (status + weight) < 1 THEN 1 ELSE (status + weight) END), weight = NULL, date = "$date" WHERE weight IS NOT NULL');
   }
 
-  void updateVoc(Voc voc) async {
+  void updateWeight(Voc voc) async {
     final db = await instance.database;
-    //Gérer statut entre 0 et 7
-    await db.execute('UPDATE voc SET modif = $voc.modif WHERE id = $voc.id');
+    final int weight = voc.weight;
+    final int id = voc.id;
+    await db.execute('UPDATE voc SET weight = $weight WHERE id = $id');
   }
 
   Future<DateTime> getLastUpdate() async {
@@ -103,6 +120,6 @@ class VocappDatabase {
 
   void setLastUpdate() async {
     final db = await instance.database;
-    await db.execute('UPDATE app SET lastUpdate = DATE("now")');
+    await db.execute('UPDATE app SET lastUpdate = DATE("now","localtime")');
   }
 }

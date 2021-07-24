@@ -1,10 +1,11 @@
+// @dart=2.9
+
 import 'package:flutter/material.dart';
-import 'package:vocapp/model/app.dart';
-import 'package:vocapp/pages/home_page.dart';
+import 'package:vocapp/models/app.dart';
+import 'package:vocapp/pages/menu_page.dart';
 
 void main() async {
   runApp(MyApp());
-  new App();
 }
 
 class MyApp extends StatelessWidget {
@@ -13,31 +14,30 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: colors['primary'],
       ),
-      home: SplashPage(
-        duration: 3,
-        goToPage: HomePage(),
-      ),
+      home: SplashPage(),
     );
   }
 }
 
-class SplashPage extends StatelessWidget {
-  late final int duration;
-  late final Widget goToPage;
+class SplashPage extends StatefulWidget {
+  @override
+  _SplashPageState createState() => _SplashPageState();
+}
 
-  SplashPage({required this.goToPage, required this.duration});
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    init().then((v) => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MenuPage())));
+  }
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(Duration(seconds: this.duration), () {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => this.goToPage));
-    });
-
     return Scaffold(
       body: Container(
-        color: Colors.blue,
+        color: colors['primary'],
         alignment: Alignment.center,
         child: Icon(Icons.auto_stories, color: Colors.white, size: 100),
       ),

@@ -1,5 +1,7 @@
-import 'package:vocapp/model/app.dart';
+import 'package:vocapp/models/app.dart';
 import 'package:flutter/material.dart';
+import 'package:vocapp/pages/results_page.dart';
+import 'package:vocapp/repositories/vocapp_database.dart';
 
 class TrainingPage extends StatefulWidget {
   @override
@@ -16,18 +18,16 @@ class _TrainingPageState extends State<TrainingPage> {
     });
   }
 
-  void changeVoc(bool increase) {
+  void next(int weight) {
     setState(() {
-      if (increase) {
-        if (index < App.voc.length - 1) {
-          index++;
-          isVisible = !isVisible;
-        } else {
-          Navigator.pop(context);
-        }
-      } else if (!increase && index > 0) {
-        index--;
+      voc[index].weight = weight;
+      VocappDatabase.instance.updateWeight(voc[index]);
+
+      if (index < voc.length - 1) {
+        index++;
         isVisible = !isVisible;
+      } else {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ResultsPage()));
       }
     });
   }
@@ -37,90 +37,87 @@ class _TrainingPageState extends State<TrainingPage> {
     return Scaffold(
         appBar: AppBar(
           title: Text('Training'),
+          centerTitle: true,
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 30),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  (index + 1).toString() + '/' + App.voc.length.toString(),
+                  (index + 1).toString() + '/' + voc.length.toString(),
                   style: TextStyle(fontSize: 30),
                 ),
                 SizedBox(height: 75),
                 Text(
-                  App.voc[index].lemma,
+                  voc[index].lemma,
                   style: TextStyle(fontSize: 22),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 5),
                 Text(
-                  App.voc[index].pos,
-                  style: TextStyle(fontStyle: FontStyle.italic, fontSize: 20),
+                  voc[index].pos,
+                  style: TextStyle(fontStyle: FontStyle.italic, fontSize: 20, color: Colors.grey[600]),
                 ),
                 SizedBox(height: 40),
-                Opacity(
-                  opacity: isVisible ? 0 : 1,
+                Visibility(
+                  visible: !isVisible,
                   child: ElevatedButton(
                     onPressed: () {
                       changeVisibility();
                     },
                     child: Text('Show'),
-                    style: App.buttonStyle,
+                    style: buttonStyle(),
                   ),
                 ),
-                Opacity(
-                  opacity: isVisible ? 1 : 0,
+                Visibility(
+                  visible: isVisible,
                   child: Column(
                     children: [
                       Text(
-                        App.voc[index].translation,
+                        "fr: " + voc[index].translation,
                         style: TextStyle(fontSize: 22),
                       ),
                       SizedBox(height: 10),
                       Text(
-                        App.voc[index].inflections,
-                        style: TextStyle(fontSize: 22),
+                        voc[index].inflections,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 22, color: Colors.grey[700]),
                       ),
-                      SizedBox(height: 40),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      SizedBox(height: 60),
+                      Wrap(
+                        alignment: WrapAlignment.center,
                         children: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.red[600],
-                              shape: CircleBorder(),
+                          new Container(
+                            margin: const EdgeInsets.all(10.0),
+                            child: ElevatedButton(
+                              style: buttonStyle(colors['review']),
+                              child: Text("Review", style: TextStyle(color: Colors.white, fontSize: 19)),
+                              onPressed: () {
+                                next(-1);
+                              },
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Icon(
-                                Icons.thumb_down_alt_outlined,
-                                size: 40,
-                                color: Colors.white,
-                              ),
-                            ),
-                            onPressed: () {
-                              changeVoc(false);
-                            },
                           ),
-                          SizedBox(width: 30),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.green[600],
-                              shape: CircleBorder(),
+                          new Container(
+                            margin: const EdgeInsets.all(10.0),
+                            child: ElevatedButton(
+                              style: buttonStyle(colors['correct']),
+                              child: Text("Correct", style: TextStyle(color: Colors.white, fontSize: 19)),
+                              onPressed: () {
+                                next(1);
+                              },
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Icon(
-                                Icons.thumb_up_alt_outlined,
-                                size: 40,
-                                color: Colors.white,
-                              ),
+                          ),
+                          new Container(
+                            margin: const EdgeInsets.all(10.0),
+                            child: ElevatedButton(
+                              style: buttonStyle(colors['easy']),
+                              child: Text("Easy", style: TextStyle(color: Colors.white, fontSize: 19)),
+                              onPressed: () {
+                                next(2);
+                              },
                             ),
-                            onPressed: () {
-                              changeVoc(true);
-                            },
                           ),
                         ],
                       ),
