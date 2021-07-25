@@ -9,7 +9,7 @@ Map<String, Color?> colors = {
   'primary': Colors.blue,
   'review': Colors.red[600],
   'correct': Colors.green[600],
-  'easy': Colors.yellow[600],
+  'easy': Colors.amber[600],
 };
 
 Map<int, List> feedbacks = {
