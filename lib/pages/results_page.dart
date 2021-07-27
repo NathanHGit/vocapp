@@ -31,11 +31,11 @@ class _ResultsPageState extends State<ResultsPage> {
     } else if (results > 1 / 3) {
       feedback = feedbacks[1]![(new Random()).nextInt(feedbacks[1]!.length)];
       backgroundColor = colors['correct'];
-      icon = Icons.thumb_up;
+      icon = Icons.sentiment_very_satisfied_outlined;
     } else {
       feedback = feedbacks[2]![(new Random()).nextInt(feedbacks[2]!.length)];
       backgroundColor = colors['review'];
-      icon = Icons.thumb_down;
+      icon = Icons.sentiment_very_dissatisfied_outlined;
     }
   }
 
@@ -57,20 +57,24 @@ class _ResultsPageState extends State<ResultsPage> {
           children: [
             Align(
               alignment: Alignment.topRight,
-              child:
-              Padding(padding: const EdgeInsets.only(top: 40, right: 20),
-                child: 
-                IconButton(onPressed: () => Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => MenuPage()),
-                  (Route<dynamic> route) => false,
-                  ), icon: const Icon(Icons.clear), color: Colors.grey[100],iconSize: 30,),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 40, right: 20),
+                child: IconButton(
+                  onPressed: () => Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => MenuPage()),
+                    (Route<dynamic> route) => false,
+                  ),
+                  icon: const Icon(Icons.clear),
+                  color: Colors.grey[100],
+                  iconSize: 30,
                 ),
               ),
+            ),
             Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                padding: const EdgeInsets.only(top: 50.0),
+                padding: const EdgeInsets.only(bottom: 50.0),
                 child: ConfettiWidget(
                   confettiController: confetti,
                   blastDirection: -45,
@@ -84,7 +88,7 @@ class _ResultsPageState extends State<ResultsPage> {
             Align(
               alignment: Alignment.centerRight,
               child: Padding(
-                padding: const EdgeInsets.only(top: 50.0),
+                padding: const EdgeInsets.only(bottom: 50.0),
                 child: ConfettiWidget(
                   confettiController: confetti,
                   blastDirection: -90,
@@ -110,28 +114,23 @@ class _ResultsPageState extends State<ResultsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-
-                    
-                  new LinearPercentIndicator(
-                    width: MediaQuery.of(context).size.width * 2 / 3,
-                    lineHeight: 20.0,
-                    percent: getResults(),
-                    animation: true,
-                    backgroundColor: Colors.grey[300],
-                    progressColor: Colors.grey[100],
-                  ),],
+                      new LinearPercentIndicator(
+                        width: MediaQuery.of(context).size.width * 2 / 3,
+                        lineHeight: 20.0,
+                        percent: getResults(),
+                        animation: true,
+                        backgroundColor: Colors.grey[300],
+                        progressColor: Colors.grey[100],
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    height: 75
-                  ),
+                  SizedBox(height: 75),
                   Icon(
                     icon,
                     size: 120,
                     color: Colors.grey[100],
                   ),
-                  SizedBox(
-                    height: 40
-                  ),
+                  SizedBox(height: 40),
                 ],
               ),
             ),
